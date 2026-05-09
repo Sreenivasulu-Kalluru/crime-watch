@@ -1,0 +1,17 @@
+{
+  "name": "CrimeWatch",
+  "short_name": "CrimeWatch",
+  "description": "Real-Time Crime Reporting System — Report crimes anonymously with geolocation and real-time tracking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
