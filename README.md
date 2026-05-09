@@ -1,5 +1,7 @@
 # 🛡️ CrimeWatch — Real-Time Crime Reporting System
 
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/Sreenivasulu-Kalluru/crime-watch)
+
 A civic engagement platform where users can report crimes anonymously with geolocation tagging, photos, and videos. Authorities can view incidents on a real-time map and respond accordingly.
 
 ## 🚀 Tech Stack
@@ -19,10 +21,12 @@ A civic engagement platform where users can report crimes anonymously with geolo
 - ✅ Anonymous Reporting Mode
 - ✅ Live Interactive Crime Map (Leaflet + OpenStreetMap)
 - ✅ Real-Time Updates via Socket.IO
+- ✅ Real-Time In-App Notifications
 - ✅ Category & Severity Filters
 - ✅ Report Status Tracking (Pending → Investigating → Resolved)
 - ✅ Admin Dashboard with Statistics
 - ✅ User Management Panel
+- ✅ Responsive Mobile-First UI
 
 ## 🛠️ Setup & Installation
 
@@ -109,3 +113,11 @@ crime-reporting-system/
 | GET | `/api/reports/stats` | Get statistics |
 | GET | `/api/admin/users` | List users (admin) |
 | PUT | `/api/admin/users/:id/role` | Change role (admin) |
+| GET | `/api/notifications` | Get user notifications |
+| PUT | `/api/notifications/:id/read` | Mark notification as read |
+
+## 👨‍💻 Author
+
+### Sreenivasulu Kalluru
+
+- [GitHub Profile](https://github.com/Sreenivasulu-Kalluru)
