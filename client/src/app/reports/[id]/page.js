@@ -37,7 +37,7 @@ export default function ReportDetailPage() {
   return (
     <div className="page-container report-detail">
       <div style={{ marginBottom: '1.5rem' }}>
-        <Link href="/reports" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500, background: 'var(--bg-secondary)', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+        <Link href="/reports" className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
           ← Back to Reports
         </Link>
       </div>
