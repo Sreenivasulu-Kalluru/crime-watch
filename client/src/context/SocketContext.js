@@ -10,7 +10,7 @@ export function SocketProvider({ children }) {
   const { user } = useAuth();
 
   useEffect(() => {
-    const s = io('http://localhost:5000', { transports: ['websocket', 'polling'] });
+    const s = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', { transports: ['websocket', 'polling'] });
     setSocket(s);
     return () => s.disconnect();
   }, []);

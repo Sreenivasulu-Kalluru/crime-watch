@@ -49,12 +49,22 @@ npm install
 
 ### 2. Configure Environment
 
-Edit `server/.env`:
+**Backend Environment (`server/.env`):**
+Create a `.env` file in the `server` directory:
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/crime-reporting
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/crime-reporting
 JWT_SECRET=your_secret_key
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000 # Optional for local development
+```
+
+**Frontend Environment (`client/.env.local`):**
+Create a `.env.local` file in the `client` directory:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
 ### 3. Run the Application
