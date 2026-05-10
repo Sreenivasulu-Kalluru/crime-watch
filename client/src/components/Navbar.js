@@ -31,6 +31,7 @@ export default function Navbar() {
         {/* Desktop Links */}
         <div className="navbar-links">
           <Link href="/" className={isActive('/') ? 'active' : ''}>Home</Link>
+          <Link href="/about" className={isActive('/about') ? 'active' : ''}>About</Link>
           <Link href="/map" className={isActive('/map') ? 'active' : ''}>Live Map</Link>
           <Link href="/reports" className={isActive('/reports') ? 'active' : ''}>Reports</Link>
 
@@ -68,6 +69,7 @@ export default function Navbar() {
       {/* Mobile Menu */}
       <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
         <Link href="/" onClick={() => setMenuOpen(false)}>Home</Link>
+        <Link href="/about" onClick={() => setMenuOpen(false)}>About</Link>
         <Link href="/map" onClick={() => setMenuOpen(false)}>Live Map</Link>
         <Link href="/reports" onClick={() => setMenuOpen(false)}>Reports</Link>
         
