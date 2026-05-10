@@ -66,12 +66,13 @@ const createReport = async (req, res) => {
 // @route   GET /api/reports
 const getReports = async (req, res) => {
   try {
-    const { category, status, severity, page = 1, limit = 20, sort = '-createdAt' } = req.query;
+    const { category, status, severity, reporter, page = 1, limit = 20, sort = '-createdAt' } = req.query;
 
     const query = {};
     if (category) query.category = category;
     if (status) query.status = status;
     if (severity) query.severity = severity;
+    if (reporter) query.reporter = reporter;
 
     const total = await Report.countDocuments(query);
     const reports = await Report.find(query)

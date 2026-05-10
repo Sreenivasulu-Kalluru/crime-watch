@@ -47,7 +47,9 @@ export default function Navbar() {
               <Link href="/report" className="nav-btn-primary">
                 + Report Crime
               </Link>
-              <div className="nav-avatar">{user.name?.charAt(0).toUpperCase()}</div>
+              <Link href="/profile" style={{ textDecoration: 'none' }}>
+                <div className="nav-avatar" title="My Profile" style={{ cursor: 'pointer' }}>{user.name?.charAt(0).toUpperCase()}</div>
+              </Link>
               <button onClick={logout} className="logout-btn">
                 Logout
               </button>
@@ -81,6 +83,7 @@ export default function Navbar() {
             { user.role === 'admin' && (
               <Link href="/admin" onClick={() => setMenuOpen(false)}>Admin</Link>
             )}
+            <Link href="/profile" onClick={() => setMenuOpen(false)}>My Profile</Link>
             <Link href="/report" className="nav-btn-primary" onClick={() => setMenuOpen(false)}>+ Report Crime</Link>
             <button onClick={() => { logout(); setMenuOpen(false); }} className="logout-btn">Logout ({user.name})</button>
           </>
