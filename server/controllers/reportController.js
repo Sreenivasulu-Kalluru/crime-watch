@@ -1,7 +1,5 @@
 const Report = require('../models/Report');
 const Notification = require('../models/Notification');
-const NodeCache = require('node-cache');
-const statsCache = new NodeCache({ stdTTL: 120 }); // 2 minutes
 
 // @desc    Create a new crime report
 // @route   POST /api/reports
@@ -42,9 +40,6 @@ const createReport = async (req, res) => {
 
     const report = await Report.create(reportData);
     const populatedReport = await Report.findById(report._id).populate('reporter', 'name email avatar');
-
-    // Invalidate stats cache
-    statsCache.del("global_stats");
 
     // Emit socket event for real-time updates
     const io = req.app.get('io');
@@ -160,9 +155,6 @@ const updateReportStatus = async (req, res) => {
 
     await report.save();
 
-    // Invalidate stats cache
-    statsCache.del("global_stats");
-
     const updatedReport = await Report.findById(report._id)
       .populate('reporter', 'name email avatar')
       .populate('assignedTo', 'name email')
@@ -210,9 +202,6 @@ const deleteReport = async (req, res) => {
     }
 
     await Report.findByIdAndDelete(req.params.id);
-
-    // Invalidate stats cache
-    statsCache.del("global_stats");
 
     // Emit socket event
     const io = req.app.get('io');
@@ -269,58 +258,52 @@ const getNearbyReports = async (req, res) => {
 // @route   GET /api/reports/stats
 const getReportStats = async (req, res) => {
   try {
-    let statsData = statsCache.get("global_stats");
+    const filter = {};
+    const totalReports = await Report.countDocuments(filter);
+    const pendingReports = await Report.countDocuments({ ...filter, status: 'pending' });
+    const investigatingReports = await Report.countDocuments({ ...filter, status: 'investigating' });
+    const resolvedReports = await Report.countDocuments({ ...filter, status: 'resolved' });
 
-    if (!statsData) {
-      const filter = {};
-      const totalReports = await Report.countDocuments(filter);
-      const pendingReports = await Report.countDocuments({ ...filter, status: 'pending' });
-      const investigatingReports = await Report.countDocuments({ ...filter, status: 'investigating' });
-      const resolvedReports = await Report.countDocuments({ ...filter, status: 'resolved' });
+    const categoryStats = await Report.aggregate([
+      { $match: filter },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
 
-      const categoryStats = await Report.aggregate([
-        { $match: filter },
-        { $group: { _id: '$category', count: { $sum: 1 } } },
-        { $sort: { count: -1 } }
-      ]);
+    const severityStats = await Report.aggregate([
+      { $match: filter },
+      { $group: { _id: '$severity', count: { $sum: 1 } } }
+    ]);
 
-      const severityStats = await Report.aggregate([
-        { $match: filter },
-        { $group: { _id: '$severity', count: { $sum: 1 } } }
-      ]);
+    const recentReports = await Report.find(filter)
+      .sort('-createdAt')
+      .limit(5)
+      .populate('reporter', 'name avatar');
 
-      const recentReports = await Report.find(filter)
-        .sort('-createdAt')
-        .limit(5)
-        .populate('reporter', 'name avatar');
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const dailyStats = await Report.aggregate([
+      { $match: { ...filter, createdAt: { $gte: sevenDaysAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
 
-      const dailyStats = await Report.aggregate([
-        { $match: { ...filter, createdAt: { $gte: sevenDaysAgo } } },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-            count: { $sum: 1 }
-          }
-        },
-        { $sort: { _id: 1 } }
-      ]);
-
-      statsData = {
-        totalReports,
-        pendingReports,
-        investigatingReports,
-        resolvedReports,
-        categoryStats,
-        severityStats,
-        recentReports,
-        dailyStats
-      };
-
-      statsCache.set("global_stats", statsData);
-    }
+    const statsData = {
+      totalReports,
+      pendingReports,
+      investigatingReports,
+      resolvedReports,
+      categoryStats,
+      severityStats,
+      recentReports,
+      dailyStats
+    };
 
     const isElevatedUser = req.user && (req.user.role === 'admin' || req.user.role === 'authority');
     const sanitizedRecentReports = statsData.recentReports.map(report => {
@@ -343,8 +326,6 @@ const getReportStats = async (req, res) => {
   }
 };
 
-const clearStatsCache = () => statsCache.del("global_stats");
-
 module.exports = {
   createReport,
   getReports,
@@ -352,6 +333,5 @@ module.exports = {
   updateReportStatus,
   deleteReport,
   getNearbyReports,
-  getReportStats,
-  clearStatsCache
+  getReportStats
 };
