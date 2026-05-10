@@ -56,7 +56,7 @@ export default function ReportDetailPage() {
             <div className="glass-card" style={{marginBottom: '1.5rem'}}>
               <h3 style={{marginBottom: '0.75rem', fontSize: '1rem', fontWeight: 700}}>📷 Evidence</h3>
               <div className="report-media-grid">
-                {report.media.map((m, i) => <img key={i} src={`http://localhost:5000/uploads/${m}`} alt={`Evidence ${i + 1}`} />)}
+                {report.media.map((m, i) => <img key={i} src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/uploads/${m}`} alt={`Evidence ${i + 1}`} />)}
               </div>
             </div>
           )}
