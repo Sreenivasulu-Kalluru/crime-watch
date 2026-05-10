@@ -43,6 +43,9 @@ const createReport = async (req, res) => {
     const report = await Report.create(reportData);
     const populatedReport = await Report.findById(report._id).populate('reporter', 'name email avatar');
 
+    // Invalidate stats cache
+    statsCache.del("global_stats");
+
     // Emit socket event for real-time updates
     const io = req.app.get('io');
     if (io) {
@@ -157,6 +160,9 @@ const updateReportStatus = async (req, res) => {
 
     await report.save();
 
+    // Invalidate stats cache
+    statsCache.del("global_stats");
+
     const updatedReport = await Report.findById(report._id)
       .populate('reporter', 'name email avatar')
       .populate('assignedTo', 'name email')
@@ -204,6 +210,9 @@ const deleteReport = async (req, res) => {
     }
 
     await Report.findByIdAndDelete(req.params.id);
+
+    // Invalidate stats cache
+    statsCache.del("global_stats");
 
     // Emit socket event
     const io = req.app.get('io');
@@ -334,6 +343,8 @@ const getReportStats = async (req, res) => {
   }
 };
 
+const clearStatsCache = () => statsCache.del("global_stats");
+
 module.exports = {
   createReport,
   getReports,
@@ -341,5 +352,6 @@ module.exports = {
   updateReportStatus,
   deleteReport,
   getNearbyReports,
-  getReportStats
+  getReportStats,
+  clearStatsCache
 };

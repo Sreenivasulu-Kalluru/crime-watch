@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Report = require('../models/Report');
+const { clearStatsCache } = require('./reportController');
 
 // @desc    Get all users (admin only)
 // @route   GET /api/admin/users
@@ -56,6 +57,9 @@ const assignReport = async (req, res) => {
       note: 'Report assigned to authority'
     });
     await report.save();
+
+    // Invalidate stats cache
+    if (clearStatsCache) clearStatsCache();
 
     // Emit socket event
     const io = req.app.get('io');
