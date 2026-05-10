@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { getReportById, updateReportStatus } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import MapView from '@/components/MapView';
+import Link from 'next/link';
 
 export default function ReportDetailPage() {
   const { id } = useParams();
@@ -35,6 +36,11 @@ export default function ReportDetailPage() {
 
   return (
     <div className="page-container report-detail">
+      <div style={{ marginBottom: '1.5rem' }}>
+        <Link href="/reports" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', textDecoration: 'none', fontWeight: 500, background: 'var(--bg-secondary)', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+          ← Back to Reports
+        </Link>
+      </div>
       <div className="report-detail-header">
         <h1>{report.title}</h1>
         <div className="report-meta">
