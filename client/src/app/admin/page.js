@@ -6,16 +6,17 @@ import { useRouter } from 'next/navigation';
 import ConfirmModal from '@/components/ConfirmModal';
 
 export default function AdminPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState({ open: false, userId: null });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user || user.role !== 'admin') { router.push('/login'); return; }
     getUsers().then(r => setUsers(r.data)).catch(console.error).finally(() => setLoading(false));
-  }, [user]);
+  }, [user, authLoading]);
 
   const handleRoleChange = async (id, role) => {
     try {

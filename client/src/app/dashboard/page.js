@@ -6,19 +6,20 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState(null);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user || (user.role !== 'admin' && user.role !== 'authority')) { router.push('/login'); return; }
     Promise.all([
       getReportStats().then(r => setStats(r.data)),
       getReports({ limit: 20, sort: '-createdAt' }).then(r => setReports(r.data.reports))
     ]).finally(() => setLoading(false));
-  }, [user]);
+  }, [user, authLoading]);
 
   const handleQuickStatus = async (id, status) => {
     try {
