@@ -71,19 +71,6 @@ const getReports = async (req, res) => {
     if (status) query.status = status;
     if (severity) query.severity = severity;
 
-    // Filter by reporter if user is a citizen
-    if (req.user && req.user.role === 'citizen') {
-      query.reporter = req.user._id;
-    } else if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'authority')) {
-      // If not logged in or doesn't have elevated role, maybe they shouldn't see anything?
-      // For now, let's say if they are not logged in, they see nothing (or only anonymous ones?)
-      // User said: "only show reported complaints to the particular user"
-      // So if no user, return empty or limit.
-      if (!req.user) {
-        return res.json({ reports: [], total: 0, page: parseInt(page), pages: 0 });
-      }
-    }
-
     const total = await Report.countDocuments(query);
     const reports = await Report.find(query)
       .populate('reporter', 'name email avatar')
@@ -92,8 +79,22 @@ const getReports = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
 
+    // Mask sensitive data for public/citizens
+    const isElevatedUser = req.user && (req.user.role === 'admin' || req.user.role === 'authority');
+    
+    const sanitizedReports = reports.map(report => {
+      const r = report.toObject();
+      if (!isElevatedUser && r.reporter) {
+        const isOwnReport = req.user && req.user._id.toString() === r.reporter._id.toString();
+        if (!isOwnReport || r.isAnonymous) {
+          r.reporter = { name: 'Anonymous Citizen' };
+        }
+      }
+      return r;
+    });
+
     res.json({
-      reports,
+      reports: sanitizedReports,
       total,
       page: parseInt(page),
       pages: Math.ceil(total / limit)
@@ -116,18 +117,17 @@ const getReportById = async (req, res) => {
       return res.status(404).json({ message: 'Report not found' });
     }
 
-    // Check permissions
-    if (req.user && req.user.role === 'citizen') {
-      if (report.reporter && report.reporter._id.toString() !== req.user._id.toString()) {
-        return res.status(403).json({ message: 'Not authorized to view this report' });
-      }
-    } else if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'authority')) {
-      if (!req.user) {
-        return res.status(401).json({ message: 'Authentication required' });
+    const isElevatedUser = req.user && (req.user.role === 'admin' || req.user.role === 'authority');
+    const r = report.toObject();
+    
+    if (!isElevatedUser && r.reporter) {
+      const isOwnReport = req.user && req.user._id.toString() === r.reporter._id.toString();
+      if (!isOwnReport || r.isAnonymous) {
+        r.reporter = { name: 'Anonymous Citizen' };
       }
     }
 
-    res.json(report);
+    res.json(r);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -232,16 +232,22 @@ const getNearbyReports = async (req, res) => {
       }
     };
 
-    // Filter by reporter if user is a citizen
-    if (req.user && req.user.role === 'citizen') {
-      query.reporter = req.user._id;
-    } else if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'authority')) {
-      if (!req.user) return res.json([]);
-    }
-
     const reports = await Report.find(query).populate('reporter', 'name avatar');
 
-    res.json(reports);
+    const isElevatedUser = req.user && (req.user.role === 'admin' || req.user.role === 'authority');
+    
+    const sanitizedReports = reports.map(report => {
+      const r = report.toObject();
+      if (!isElevatedUser && r.reporter) {
+        const isOwnReport = req.user && req.user._id.toString() === r.reporter._id.toString();
+        if (!isOwnReport || r.isAnonymous) {
+          r.reporter = { name: 'Anonymous Citizen' };
+        }
+      }
+      return r;
+    });
+
+    res.json(sanitizedReports);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -252,16 +258,6 @@ const getNearbyReports = async (req, res) => {
 const getReportStats = async (req, res) => {
   try {
     const filter = {};
-    if (req.user && req.user.role === 'citizen') {
-      filter.reporter = req.user._id;
-    } else if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'authority')) {
-      if (!req.user) {
-        return res.json({
-          totalReports: 0, pendingReports: 0, investigatingReports: 0, resolvedReports: 0,
-          categoryStats: [], severityStats: [], recentReports: [], dailyStats: []
-        });
-      }
-    }
 
     const totalReports = await Report.countDocuments(filter);
     const pendingReports = await Report.countDocuments({ ...filter, status: 'pending' });
@@ -299,6 +295,18 @@ const getReportStats = async (req, res) => {
       { $sort: { _id: 1 } }
     ]);
 
+    const isElevatedUser = req.user && (req.user.role === 'admin' || req.user.role === 'authority');
+    const sanitizedRecentReports = recentReports.map(report => {
+      const r = report.toObject();
+      if (!isElevatedUser && r.reporter) {
+        const isOwnReport = req.user && req.user._id.toString() === r.reporter._id.toString();
+        if (!isOwnReport || r.isAnonymous) {
+          r.reporter = { name: 'Anonymous Citizen' };
+        }
+      }
+      return r;
+    });
+
     res.json({
       totalReports,
       pendingReports,
@@ -306,7 +314,7 @@ const getReportStats = async (req, res) => {
       resolvedReports,
       categoryStats,
       severityStats,
-      recentReports,
+      recentReports: sanitizedRecentReports,
       dailyStats
     });
   } catch (error) {
