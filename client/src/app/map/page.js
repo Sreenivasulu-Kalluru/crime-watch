@@ -14,6 +14,7 @@ const categoryColors = {
 export default function LiveMapPage() {
   const [reports, setReports] = useState([]);
   const [filter, setFilter] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { socket } = useSocket();
   const router = useRouter();
 
@@ -33,8 +34,17 @@ export default function LiveMapPage() {
   return (
     <div className="map-container">
       <button className="map-back-btn" onClick={() => router.back()} aria-label="Go back">← Back</button>
+      
+      <button 
+        className="map-toggle-btn" 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        aria-label="Toggle details"
+      >
+        {isSidebarOpen ? '✕ Close Details' : 'ℹ️ Crime Details'}
+      </button>
+
       <MapView reports={filtered} />
-      <div className="map-sidebar">
+      <div className={`map-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
         <h3>🗺️ Live Crime Map</h3>
         <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
           {filtered.length} incidents displayed
